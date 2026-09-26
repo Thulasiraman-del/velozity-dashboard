@@ -1,14 +1,26 @@
-
+import { Navigate } from "react-router-dom";
 import { useState, type FormEvent } from "react";
 import { useAuth } from "../context/AuthContext";
 
 export default function Login() {
-  const { login } = useAuth();
+  const { login, user, isLoading } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  if (isLoading) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-slate-950 text-white">
+        <p className="text-slate-400">Loading...</p>
+      </main>
+    );
+  }
+
+  if (user) {
+    return <Navigate to="/" replace />;
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -16,8 +28,19 @@ export default function Login() {
     setError("");
     setIsSubmitting(true);
 
+    const formData = new FormData(event.currentTarget);
+
+    const formEmail = String(formData.get("email") ?? "").trim();
+    const formPassword = String(formData.get("password") ?? "");
+
+    if (!formEmail || !formPassword) {
+      setError("Email and password are required.");
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
-      await login(email, password);
+      await login(formEmail, formPassword);
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Login failed";
@@ -71,9 +94,11 @@ export default function Login() {
 
               <input
                 id="email"
+                name="email"
                 type="email"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
+                autoComplete="username"
                 placeholder="you@example.com"
                 required
                 className="w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-emerald-500"
@@ -90,9 +115,11 @@ export default function Login() {
 
               <input
                 id="password"
+                name="password"
                 type="password"
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
+                autoComplete="current-password"
                 placeholder="Enter your password"
                 required
                 className="w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-emerald-500"
