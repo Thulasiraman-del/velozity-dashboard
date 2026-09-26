@@ -12,3 +12,20 @@ export async function getDevelopers() {
       role: user.role,
     }));
 }
+
+export async function getUserById(userId: string) {
+  const users = await db.orm.public.User.all();
+
+  const user = users.find((item) => item.id === userId);
+
+  if (!user) {
+    return null;
+  }
+
+  return {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+  };
+}

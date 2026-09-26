@@ -8,7 +8,9 @@ import {
   type RegisterInput,
 } from "../services/auth/auth.service.js";
 
+import { getUserById } from "../services/user.service.js";
 import { db } from "../config/db.js";
+import type { AuthenticatedRequest } from "../middleware/auth.middleware.js";
 
 export async function registerController(
   req: Request,
@@ -64,6 +66,41 @@ export async function loginController(
     res.status(401).json({
       success: false,
       message,
+    });
+  }
+}
+
+export async function meController(
+  req: AuthenticatedRequest,
+  res: Response,
+): Promise<void> {
+  try {
+    if (!req.user) {
+      res.status(401).json({
+        success: false,
+        message: "Authentication required",
+      });
+      return;
+    }
+
+    const user = await getUserById(req.user.userId);
+
+    if (!user) {
+      res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+      return;
+    }
+
+    res.status(200).json({
+      success: true,
+      user,
+    });
+  } catch {
+    res.status(500).json({
+      success: false,
+      message: "Failed to get current user",
     });
   }
 }

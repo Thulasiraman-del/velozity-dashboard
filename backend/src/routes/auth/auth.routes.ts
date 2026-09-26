@@ -4,11 +4,16 @@ import {
   loginController,
   registerController,
   logoutController,
+  meController,
 } from "../../controllers/auth.controller.js";
 
 import {
   refreshTokenController,
 } from "../../controllers/auth-refresh.controller.js";
+
+import {
+  authenticate,
+} from "../../middleware/auth.middleware.js";
 
 import { validateBody } from "../../middleware/validation.middleware.js";
 
@@ -32,6 +37,13 @@ router.post(
 );
 
 router.post("/logout", logoutController);
+
 router.post("/refresh", refreshTokenController);
+
+router.get(
+  "/me",
+  authenticate,
+  meController,
+);
 
 export default router;
