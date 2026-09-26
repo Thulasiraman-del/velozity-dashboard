@@ -1,3 +1,4 @@
+import Tasks from "./pages/Tasks";
 import { useEffect, useState } from "react";
 
 import { useAuth } from "./context/AuthContext";
@@ -29,6 +30,9 @@ export default function App() {
 
   const [onlineUsers, setOnlineUsers] =
     useState(0);
+
+  const [currentView, setCurrentView] =
+    useState<"dashboard" | "tasks">("dashboard");
 
   useEffect(() => {
     if (!user) {
@@ -199,185 +203,214 @@ export default function App() {
               {onlineUsers} Online
             </div>
 
-            <button
-              type="button"
-              className="rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-sm text-slate-200"
-            >
-              Dashboard
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() =>
+                  setCurrentView("dashboard")
+                }
+                className={`rounded-lg border px-4 py-2 text-sm ${
+                  currentView === "dashboard"
+                    ? "border-lime-400 bg-lime-400/10 text-lime-300"
+                    : "border-slate-700 bg-slate-800 text-slate-200"
+                }`}
+              >
+                Dashboard
+              </button>
+
+              <button
+                type="button"
+                onClick={() =>
+                  setCurrentView("tasks")
+                }
+                className={`rounded-lg border px-4 py-2 text-sm ${
+                  currentView === "tasks"
+                    ? "border-lime-400 bg-lime-400/10 text-lime-300"
+                    : "border-slate-700 bg-slate-800 text-slate-200"
+                }`}
+              >
+                Tasks
+              </button>
+            </div>
           </div>
         </div>
       </header>
 
       <section className="mx-auto max-w-7xl px-6 py-8">
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold">
-            Welcome, {user.name}
-          </h2>
-
-          <p className="mt-1 text-sm text-slate-400">
-            You are signed in as{" "}
-            {user.role === "PROJECT_MANAGER"
-              ? "Project Manager"
-              : user.role === "DEVELOPER"
-                ? "Developer"
-                : "Administrator"}.
-          </p>
-        </div>
-
-        {error && (
-          <div className="mb-6 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
-            {error}
-          </div>
-        )}
-
-        {isLoading ? (
-          <div className="rounded-xl border border-slate-800 bg-slate-900 p-8 text-center text-slate-400">
-            Loading dashboard...
-          </div>
+        {currentView === "tasks" ? (
+          <Tasks />
         ) : (
           <>
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-              <DashboardCard
-                title="Projects"
-                value={
-                  dashboard?.totalProjects ?? 0
-                }
-                subtitle="Total projects"
-              />
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold">
+                Welcome, {user.name}
+              </h2>
 
-              <DashboardCard
-                title="Tasks"
-                value={
-                  dashboard?.totalTasks ?? 0
-                }
-                subtitle="Total tasks"
-              />
-
-              <DashboardCard
-                title="Overdue"
-                value={
-                  dashboard?.overdueTasks ?? 0
-                }
-                subtitle="Overdue tasks"
-              />
-
-              <DashboardCard
-                title="Online Users"
-                value={onlineUsers}
-                subtitle="WebSocket presence"
-              />
+              <p className="mt-1 text-sm text-slate-400">
+                You are signed in as{" "}
+                {user.role === "PROJECT_MANAGER"
+                  ? "Project Manager"
+                  : user.role === "DEVELOPER"
+                    ? "Developer"
+                    : "Administrator"}.
+              </p>
             </div>
 
-            <div className="mt-8 grid gap-6 lg:grid-cols-3">
-              <section className="rounded-xl border border-slate-800 bg-slate-900 p-6 lg:col-span-2">
-                <div className="mb-5 flex items-center justify-between">
-                  <div>
+            {error && (
+              <div className="mb-6 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+                {error}
+              </div>
+            )}
+
+            {isLoading ? (
+              <div className="rounded-xl border border-slate-800 bg-slate-900 p-8 text-center text-slate-400">
+                Loading dashboard...
+              </div>
+            ) : (
+              <>
+                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                  <DashboardCard
+                    title="Projects"
+                    value={
+                      dashboard?.totalProjects ?? 0
+                    }
+                    subtitle="Total projects"
+                  />
+
+                  <DashboardCard
+                    title="Tasks"
+                    value={
+                      dashboard?.totalTasks ?? 0
+                    }
+                    subtitle="Total tasks"
+                  />
+
+                  <DashboardCard
+                    title="Overdue"
+                    value={
+                      dashboard?.overdueTasks ?? 0
+                    }
+                    subtitle="Overdue tasks"
+                  />
+
+                  <DashboardCard
+                    title="Online Users"
+                    value={onlineUsers}
+                    subtitle="WebSocket presence"
+                  />
+                </div>
+
+                <div className="mt-8 grid gap-6 lg:grid-cols-3">
+                  <section className="rounded-xl border border-slate-800 bg-slate-900 p-6 lg:col-span-2">
+                    <div className="mb-5 flex items-center justify-between">
+                      <div>
+                        <h3 className="text-lg font-semibold">
+                          Task Status
+                        </h3>
+
+                        <p className="text-sm text-slate-400">
+                          Current task distribution
+                        </p>
+                      </div>
+
+                      <span className="rounded-full bg-blue-500/10 px-3 py-1 text-xs text-blue-400">
+                        Live data
+                      </span>
+                    </div>
+
+                    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                      <StatusCard
+                        label="To Do"
+                        value={statusCounts.TODO}
+                      />
+
+                      <StatusCard
+                        label="In Progress"
+                        value={
+                          statusCounts.IN_PROGRESS
+                        }
+                      />
+
+                      <StatusCard
+                        label="In Review"
+                        value={
+                          statusCounts.IN_REVIEW
+                        }
+                      />
+
+                      <StatusCard
+                        label="Done"
+                        value={statusCounts.DONE}
+                      />
+                    </div>
+                  </section>
+
+                  <section className="rounded-xl border border-slate-800 bg-slate-900 p-6">
                     <h3 className="text-lg font-semibold">
-                      Task Status
+                      Notifications
                     </h3>
 
-                    <p className="text-sm text-slate-400">
-                      Current task distribution
+                    <p className="mt-1 text-sm text-slate-400">
+                      Real-time notification center
                     </p>
+
+                    <div className="mt-5 rounded-lg border border-dashed border-slate-700 p-6 text-center text-sm text-slate-400">
+                      Notifications will load from the backend.
+                    </div>
+                  </section>
+                </div>
+
+                <section className="mt-8 rounded-xl border border-slate-800 bg-slate-900 p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-lg font-semibold">
+                        Project Activity
+                      </h3>
+
+                      <p className="mt-1 text-sm text-slate-400">
+                        Latest activity from PostgreSQL
+                      </p>
+                    </div>
+
+                    <span className="rounded-full bg-emerald-500/10 px-3 py-1 text-xs text-emerald-400">
+                      {activities.length} events
+                    </span>
                   </div>
 
-                  <span className="rounded-full bg-blue-500/10 px-3 py-1 text-xs text-blue-400">
-                    Live data
-                  </span>
-                </div>
+                  {activities.length === 0 ? (
+                    <div className="mt-5 rounded-lg border border-dashed border-slate-700 p-8 text-center text-sm text-slate-400">
+                      No activity found.
+                    </div>
+                  ) : (
+                    <div className="mt-5 space-y-3">
+                      {activities.map(
+                        (activity) => (
+                          <ActivityItem
+                            key={activity.id}
+                            activity={activity}
+                          />
+                        ),
+                      )}
+                    </div>
+                  )}
+                </section>
 
-                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                  <StatusCard
-                    label="To Do"
-                    value={statusCounts.TODO}
-                  />
-
-                  <StatusCard
-                    label="In Progress"
-                    value={
-                      statusCounts.IN_PROGRESS
-                    }
-                  />
-
-                  <StatusCard
-                    label="In Review"
-                    value={
-                      statusCounts.IN_REVIEW
-                    }
-                  />
-
-                  <StatusCard
-                    label="Done"
-                    value={statusCounts.DONE}
-                  />
-                </div>
-              </section>
-
-              <section className="rounded-xl border border-slate-800 bg-slate-900 p-6">
-                <h3 className="text-lg font-semibold">
-                  Notifications
-                </h3>
-
-                <p className="mt-1 text-sm text-slate-400">
-                  Real-time notification center
-                </p>
-
-                <div className="mt-5 rounded-lg border border-dashed border-slate-700 p-6 text-center text-sm text-slate-400">
-                  Notifications will load from the backend.
-                </div>
-              </section>
-            </div>
-
-            <section className="mt-8 rounded-xl border border-slate-800 bg-slate-900 p-6">
-              <div className="flex items-center justify-between">
-                <div>
+                <section className="mt-8 rounded-xl border border-slate-800 bg-slate-900 p-6">
                   <h3 className="text-lg font-semibold">
-                    Project Activity
+                    Role-Based Access
                   </h3>
 
-                  <p className="mt-1 text-sm text-slate-400">
-                    Latest activity from PostgreSQL
+                  <p className="mt-2 text-sm text-slate-400">
+                    {user.role === "ADMIN"
+                      ? "You have access to all projects, tasks, users, activity, and dashboard statistics."
+                      : user.role ===
+                          "PROJECT_MANAGER"
+                        ? "You can manage your own projects, assign tasks, and view team activity."
+                        : "You can view and update your assigned tasks only."}
                   </p>
-                </div>
-
-                <span className="rounded-full bg-emerald-500/10 px-3 py-1 text-xs text-emerald-400">
-                  {activities.length} events
-                </span>
-              </div>
-
-              {activities.length === 0 ? (
-                <div className="mt-5 rounded-lg border border-dashed border-slate-700 p-8 text-center text-sm text-slate-400">
-                  No activity found.
-                </div>
-              ) : (
-                <div className="mt-5 space-y-3">
-                  {activities.map(
-                    (activity) => (
-                      <ActivityItem
-                        key={activity.id}
-                        activity={activity}
-                      />
-                    ),
-                  )}
-                </div>
-              )}
-            </section>
-
-            <section className="mt-8 rounded-xl border border-slate-800 bg-slate-900 p-6">
-              <h3 className="text-lg font-semibold">
-                Role-Based Access
-              </h3>
-
-              <p className="mt-2 text-sm text-slate-400">
-                {user.role === "ADMIN"
-                  ? "You have access to all projects, tasks, users, activity, and dashboard statistics."
-                  : user.role ===
-                      "PROJECT_MANAGER"
-                    ? "You can manage your own projects, assign tasks, and view team activity."
-                    : "You can view and update your assigned tasks only."}
-              </p>
-            </section>
+                </section>
+              </>
+            )}
           </>
         )}
       </section>
