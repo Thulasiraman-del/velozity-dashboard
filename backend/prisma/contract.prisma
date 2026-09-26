@@ -1,0 +1,97 @@
+// use prisma-8
+enum Role {
+  ADMIN
+  PROJECT_MANAGER
+  DEVELOPER
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  IN_REVIEW
+  DONE
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+model User {
+  id            String         @id @default(uuid())
+  name          String
+  email         String         @unique
+  passwordHash  String
+  role          Role
+  projects      Project[]      @relation("ProjectManager")
+  tasks         Task[]         @relation("TaskDeveloper")
+  activityLogs  ActivityLog[]
+  refreshTokens RefreshToken[]
+  notifications Notification[]
+  createdAt     DateTime       @default(now())
+}
+
+model Project {
+  id           String        @id @default(uuid())
+  name         String
+  description  String?
+  clientName   String
+  managerId    String
+  manager      User          @relation("ProjectManager", fields:[managerId], references:[id])
+  tasks        Task[]
+  activityLogs ActivityLog[]
+  createdAt    DateTime      @default(now())
+}
+
+model Task {
+  id           String        @id @default(uuid())
+  title        String
+  description  String?
+  projectId    String
+  developerId  String
+  status       TaskStatus    @default(TODO)
+  priority     Priority      @default(MEDIUM)
+  dueDate      DateTime
+  isOverdue    Boolean       @default(false)
+  createdAt    DateTime      @default(now())
+
+  project      Project       @relation(fields:[projectId], references:[id])
+  developer    User          @relation("TaskDeveloper", fields:[developerId], references:[id])
+  activityLogs ActivityLog[]
+}
+
+model ActivityLog {
+  id        String   @id @default(uuid())
+  userId    String
+  projectId String
+  taskId    String?
+  action    String
+  details   String?
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields:[userId], references:[id])
+  project   Project  @relation(fields:[projectId], references:[id])
+  task      Task?    @relation(fields:[taskId], references:[id])
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  tokenHash String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields:[userId], references:[id])
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields:[userId], references:[id])
+}
